@@ -19,19 +19,20 @@ npm run build
 
 Output is in `frontend/dist/`.
 
-## Deploy (static hosting)
+## Deploy on Netlify
 
-1. Build with your production API URL:
+1. Go to [app.netlify.com](https://app.netlify.com) → **Add new site** → **Import an existing project**
+2. Connect **GitHub** and select `Ayush956/AgentAnalyticsFrontend`
+3. Netlify reads `netlify.toml` automatically — no build settings to change
+4. Under **Site configuration → Environment variables**, add:
 
-   ```bash
-   cd frontend
-   echo "VITE_API_URL=https://your-backend.example.com" > .env
-   npm run build
-   ```
+   | Key | Value |
+   |-----|--------|
+   | `VITE_API_URL` | Your production backend URL (e.g. `https://your-api.onrender.com`) |
 
-2. Deploy the `frontend/dist` folder to Vercel, Netlify, Cloudflare Pages, or any static host.
+5. Click **Deploy site**
 
-3. Ensure your backend allows CORS from your frontend domain.
+After deploy, allow your Netlify URL in the backend CORS config (e.g. `https://your-site.netlify.app`).
 
 ## Demo login
 
