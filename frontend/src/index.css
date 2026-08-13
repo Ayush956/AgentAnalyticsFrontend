@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-maruti-blue: #003399;
+  --color-maruti-blue-dark: #002266;
+  --color-maruti-blue-light: #e8eef8;
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background: #f4f6f9;
+}
+
+#root {
+  min-height: 100svh;
+}
