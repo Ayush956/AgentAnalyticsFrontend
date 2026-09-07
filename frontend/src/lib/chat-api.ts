@@ -1,4 +1,5 @@
 import api from './api'
+import type { CopilotAnalyticsContext } from './copilot-context'
 
 export interface ChatMessage {
   id: string
@@ -16,10 +17,15 @@ export function getChatWebSocketUrl(sessionId: string, token: string): string {
   return `${wsBase}/ws/chat/${sessionId}?token=${encodeURIComponent(token)}`
 }
 
-export async function sendChatPrompt(sessionId: string, prompt: string): Promise<void> {
+export async function sendChatPrompt(
+  sessionId: string,
+  prompt: string,
+  analyticsContext?: CopilotAnalyticsContext,
+): Promise<void> {
   await api.post('/api/chat', {
     session_id: sessionId,
     prompt,
+    analytics_context: analyticsContext ?? null,
   })
 }
 

@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { formatMonthLabel } from '../../../lib/analytics-api'
+import { formatMonthYearLabel, formatMonthYearLongLabel } from '../../../lib/analytics-api'
 
 interface SendbackTrendChartProps {
   data: { month: string; count: number }[]
@@ -15,7 +15,8 @@ interface SendbackTrendChartProps {
 
 export default function SendbackTrendChart({ data }: SendbackTrendChartProps) {
   const chartData = data.map((d) => ({
-    month: formatMonthLabel(d.month),
+    monthKey: d.month,
+    month: formatMonthYearLabel(d.month),
     count: d.count,
   }))
 
@@ -25,13 +26,18 @@ export default function SendbackTrendChart({ data }: SendbackTrendChartProps) {
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
         <XAxis
           dataKey="month"
-          tick={{ fontSize: 12, fill: '#6b7280' }}
+          tick={{ fontSize: 11, fill: '#6b7280' }}
           axisLine={false}
           tickLine={false}
+          interval="preserveStartEnd"
         />
         <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
         <Tooltip
           formatter={(value) => [value, 'Send-backs']}
+          labelFormatter={(_, payload) => {
+            const point = payload?.[0]?.payload as { monthKey?: string } | undefined
+            return point?.monthKey ? formatMonthYearLongLabel(point.monthKey) : ''
+          }}
           contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}
         />
         <Line

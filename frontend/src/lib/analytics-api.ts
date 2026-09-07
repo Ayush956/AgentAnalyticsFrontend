@@ -85,3 +85,27 @@ export function formatMonthLabel(monthKey: string): string {
   const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   return labels[month - 1] ?? monthKey
 }
+
+/** Unique month label including year — avoids duplicate x-axis keys across years. */
+export function formatMonthYearLabel(monthKey: string): string {
+  const parts = monthKey.split('-')
+  if (parts.length < 2) return monthKey
+  const year = parts[0]
+  const month = Number(parts[1])
+  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const monthLabel = labels[month - 1] ?? monthKey
+  return `${monthLabel} '${year.slice(-2)}`
+}
+
+export function formatMonthYearLongLabel(monthKey: string): string {
+  const parts = monthKey.split('-')
+  if (parts.length < 2) return monthKey
+  const year = parts[0]
+  const month = Number(parts[1])
+  const labels = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ]
+  const monthLabel = labels[month - 1] ?? monthKey
+  return `${monthLabel} ${year}`
+}

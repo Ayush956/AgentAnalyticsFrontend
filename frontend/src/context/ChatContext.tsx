@@ -15,6 +15,9 @@ import {
   sendChatPrompt,
   type ChatMessage,
 } from '../lib/chat-api'
+import type { CopilotAnalyticsContext } from '../lib/copilot-context'
+
+type GetAnalyticsContext = () => Promise<CopilotAnalyticsContext>
 
 interface ChatContextValue {
   sessionId: string
@@ -30,7 +33,12 @@ interface ChatContextValue {
 
 const ChatContext = createContext<ChatContextValue | null>(null)
 
-export function ChatProvider({ children }: { children: ReactNode }) {
+interface ChatProviderProps {
+  children: ReactNode
+  getAnalyticsContext?: GetAnalyticsContext
+}
+
+export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProps) {
   const [sessionId] = useState(createSessionId)
   const [connected, setConnected] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -42,6 +50,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<number | null>(null)
   const streamingTextRef = useRef('')
+  const getAnalyticsContextRef = useRef(getAnalyticsContext)
+
+  useEffect(() => {
+    getAnalyticsContextRef.current = getAnalyticsContext
+  }, [getAnalyticsContext])
 
   const finalizeAssistantMessage = useCallback(() => {
     const text = streamingTextRef.current.trim()
@@ -139,7 +152,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         if (!connected) {
           throw new Error('Not connected to AI assistant. Please wait a moment and try again.')
         }
-        await sendChatPrompt(sessionId, trimmed)
+
+        let analyticsContext: CopilotAnalyticsContext | undefined
+        if (getAnalyticsContextRef.current) {
+          analyticsContext = await getAnalyticsContextRef.current()
+        }
+
+        await sendChatPrompt(sessionId, trimmed, analyticsContext)
       } catch (err: unknown) {
         setIsStreaming(false)
         setIsThinking(false)

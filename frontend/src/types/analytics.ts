@@ -27,6 +27,7 @@ export interface TimingMetricItem {
 }
 
 export interface TrendPoint {
+  monthKey: string
   month: string
   days: number
 }
@@ -38,6 +39,7 @@ export interface StatusMixItem {
 }
 
 export interface VolumePoint {
+  monthKey: string
   month: string
   count: number
 }

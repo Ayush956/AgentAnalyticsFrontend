@@ -1,6 +1,6 @@
 import FilterBar from './FilterBar'
 import { ExplorerBarChart } from './charts/BarCharts'
-import { formatMonthLabel } from '../../lib/analytics-api'
+import { formatMonthLabel, formatMonthYearLabel } from '../../lib/analytics-api'
 import type { ExplorerResponse } from '../../types/analytics-api'
 import type {
   ExplorerBreakdown,
@@ -44,7 +44,12 @@ export default function ExplorerTab({
   const { breakdownBy, period, view } = explorerConfig
 
   const chartData = data.data.map((item) => ({
-    label: view === 'trend' ? formatMonthLabel(item.label) : item.label,
+    label:
+      view === 'trend' && /^\d{4}-\d{2}$/.test(item.label)
+        ? formatMonthYearLabel(item.label)
+        : view === 'trend'
+          ? formatMonthLabel(item.label)
+          : item.label,
     value: item.value,
   }))
 

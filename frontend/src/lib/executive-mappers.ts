@@ -9,7 +9,7 @@ import type {
   TrendPoint,
   VolumePoint,
 } from '../types/analytics'
-import { formatMonthLabel } from './analytics-api'
+import { formatMonthYearLabel } from './analytics-api'
 
 const STATUS_COLORS: Record<string, string> = {
   Closed: '#22c55e',
@@ -147,14 +147,16 @@ export function mapStatusMix(data: ExecutiveResponse): StatusMixItem[] {
 
 export function mapApprovalTrend(data: ExecutiveResponse): TrendPoint[] {
   return data.approval_time_trend.map((item) => ({
-    month: formatMonthLabel(item.month),
+    monthKey: item.month,
+    month: formatMonthYearLabel(item.month),
     days: item.avg_days,
   }))
 }
 
 export function mapClosureVolume(data: ExecutiveResponse): VolumePoint[] {
   return data.closure_volume_by_month.map((item) => ({
-    month: formatMonthLabel(item.month),
+    monthKey: item.month,
+    month: formatMonthYearLabel(item.month),
     count: item.count,
   }))
 }
