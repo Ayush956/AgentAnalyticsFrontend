@@ -19,6 +19,8 @@ import type { CopilotAnalyticsContext } from '../lib/copilot-context'
 
 type GetAnalyticsContext = () => Promise<CopilotAnalyticsContext>
 
+export type ThinkingPhase = 'idle' | 'fetching_data' | 'routing_ai' | 'generating'
+
 interface ChatContextValue {
   sessionId: string
   connected: boolean
@@ -26,6 +28,8 @@ interface ChatContextValue {
   streamingText: string
   isStreaming: boolean
   isThinking: boolean
+  thinkingPhase: ThinkingPhase
+  thinkingElapsedSeconds: number
   error: string | null
   sendMessage: (prompt: string) => Promise<void>
   resetChat: () => void
@@ -45,26 +49,72 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
   const [streamingText, setStreamingText] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
+  const [thinkingPhase, setThinkingPhase] = useState<ThinkingPhase>('idle')
+  const [thinkingElapsedSeconds, setThinkingElapsedSeconds] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<number | null>(null)
   const streamingTextRef = useRef('')
   const getAnalyticsContextRef = useRef(getAnalyticsContext)
+  const thinkingTimerRef = useRef<number | null>(null)
+  const thinkingStartedAtRef = useRef<number | null>(null)
+  const thinkingElapsedSecondsRef = useRef(0)
 
   useEffect(() => {
     getAnalyticsContextRef.current = getAnalyticsContext
   }, [getAnalyticsContext])
 
+  useEffect(() => {
+    if (thinkingPhase === 'idle') {
+      if (thinkingTimerRef.current) {
+        window.clearInterval(thinkingTimerRef.current)
+        thinkingTimerRef.current = null
+      }
+      thinkingStartedAtRef.current = null
+      thinkingElapsedSecondsRef.current = 0
+      setThinkingElapsedSeconds(0)
+      return
+    }
+
+    if (!thinkingStartedAtRef.current) {
+      thinkingStartedAtRef.current = Date.now()
+    }
+
+    thinkingTimerRef.current = window.setInterval(() => {
+      if (thinkingStartedAtRef.current) {
+        const elapsed = Math.max(
+          1,
+          Math.floor((Date.now() - thinkingStartedAtRef.current) / 1000),
+        )
+        thinkingElapsedSecondsRef.current = elapsed
+        setThinkingElapsedSeconds(elapsed)
+      }
+    }, 500)
+
+    return () => {
+      if (thinkingTimerRef.current) {
+        window.clearInterval(thinkingTimerRef.current)
+        thinkingTimerRef.current = null
+      }
+    }
+  }, [thinkingPhase])
+
   const finalizeAssistantMessage = useCallback(() => {
     const text = streamingTextRef.current.trim()
+    const elapsedSeconds = thinkingElapsedSecondsRef.current
     streamingTextRef.current = ''
     setStreamingText('')
 
     if (text) {
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), role: 'assistant', content: text },
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: text,
+          thinking: { elapsedSeconds: elapsedSeconds || 1 },
+        },
       ])
     }
   }, [])
@@ -104,16 +154,19 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
           if (data.status === 'thinking') {
             setIsThinking(true)
             setIsStreaming(true)
+            setThinkingPhase((prev) => (prev === 'idle' ? 'routing_ai' : prev))
           }
           if (data.status === 'completed') {
             setIsThinking(false)
             setIsStreaming(false)
+            setThinkingPhase('idle')
             finalizeAssistantMessage()
           }
           if (data.status === 'error') {
             setError(data.message ?? 'Something went wrong')
             setIsStreaming(false)
             setIsThinking(false)
+            setThinkingPhase('idle')
             streamingTextRef.current = ''
             setStreamingText('')
           }
@@ -121,6 +174,7 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
 
         if (data.type === 'chunk') {
           setIsThinking(false)
+          setThinkingPhase('generating')
           streamingTextRef.current += data.content
           setStreamingText(streamingTextRef.current)
         }
@@ -145,6 +199,7 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
       setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: trimmed }])
       setIsStreaming(true)
       setIsThinking(true)
+      setThinkingPhase('fetching_data')
       streamingTextRef.current = ''
       setStreamingText('')
 
@@ -158,10 +213,12 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
           analyticsContext = await getAnalyticsContextRef.current()
         }
 
+        setThinkingPhase('routing_ai')
         await sendChatPrompt(sessionId, trimmed, analyticsContext)
       } catch (err: unknown) {
         setIsStreaming(false)
         setIsThinking(false)
+        setThinkingPhase('idle')
         if (err && typeof err === 'object' && 'response' in err) {
           const axiosErr = err as { response?: { data?: { detail?: string } } }
           setError(axiosErr.response?.data?.detail ?? 'Failed to send message')
@@ -181,6 +238,7 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
     setStreamingText('')
     setIsStreaming(false)
     setIsThinking(false)
+    setThinkingPhase('idle')
     setError(null)
   }, [])
 
@@ -193,6 +251,8 @@ export function ChatProvider({ children, getAnalyticsContext }: ChatProviderProp
         streamingText,
         isStreaming,
         isThinking,
+        thinkingPhase,
+        thinkingElapsedSeconds,
         error,
         sendMessage,
         resetChat,

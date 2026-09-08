@@ -48,8 +48,7 @@ function LoginPage() {
 
         <div className="relative z-10">
           <div className="leading-tight text-white">
-            <div className="text-sm font-semibold tracking-[0.2em] text-white/70">MARUTI</div>
-            <div className="text-2xl font-bold tracking-wide">SUZUKI</div>
+            <div className="text-2xl font-bold tracking-wide">Ayush Analytics</div>
           </div>
         </div>
 
@@ -69,17 +68,14 @@ function LoginPage() {
         </div>
 
         <p className="relative z-10 text-xs text-blue-200/50">
-          © Maruti Suzuki India Limited
+          © Ayush Analytics
         </p>
       </div>
 
       {/* Form panel */}
       <div className="flex flex-1 flex-col items-center justify-center bg-[#f4f6f9] px-6 py-12">
         <div className="mb-8 text-center lg:hidden">
-          <div className="leading-tight text-maruti-blue">
-            <div className="text-xs font-semibold tracking-[0.2em] text-maruti-blue/70">MARUTI</div>
-            <div className="text-lg font-bold">SUZUKI</div>
-          </div>
+          <div className="text-lg font-bold text-maruti-blue">Ayush Analytics</div>
         </div>
 
         <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-8 shadow-xl shadow-gray-200/60">

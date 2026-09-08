@@ -3,6 +3,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useChat } from '../../context/ChatContext'
 import { COPILOT_SUGGESTIONS } from '../../lib/copilot-context'
 import { AssistantMessageContent, UserMessageContent } from './ChatMessageContent'
+import CopilotThinkingPanel from './CopilotThinkingPanel'
 
 const SUGGESTION_ICONS = [TrendingUp, Search, Zap, BarChart3]
 
@@ -23,6 +24,8 @@ export default function CopilotChat({
     streamingText,
     isStreaming,
     isThinking,
+    thinkingPhase,
+    thinkingElapsedSeconds,
     error,
     sendMessage,
     resetChat,
@@ -39,7 +42,7 @@ export default function CopilotChat({
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, streamingText, isThinking, scrollToBottom])
+  }, [messages, streamingText, isThinking, thinkingPhase, scrollToBottom])
 
   async function submitPrompt(prompt: string) {
     const trimmed = prompt.trim()
@@ -112,47 +115,47 @@ export default function CopilotChat({
         ) : (
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-2 pr-1">
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'max-w-[90%] bg-maruti-blue text-white'
-                      : 'w-full max-w-full border border-gray-200 bg-gray-50 text-gray-800'
-                  }`}
-                >
-                  {msg.role === 'user' ? (
-                    <UserMessageContent content={msg.content} />
-                  ) : (
-                    <AssistantMessageContent content={msg.content} />
-                  )}
+              <div key={msg.id} className={msg.role === 'assistant' ? 'space-y-2' : undefined}>
+                {msg.role === 'assistant' && msg.thinking && (
+                  <CopilotThinkingPanel
+                    completed
+                    elapsedSeconds={msg.thinking.elapsedSeconds}
+                    defaultExpanded={false}
+                  />
+                )}
+                <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'max-w-[90%] bg-maruti-blue text-white'
+                        : 'w-full max-w-full border border-gray-200 bg-gray-50 text-gray-800'
+                    }`}
+                  >
+                    {msg.role === 'user' ? (
+                      <UserMessageContent content={msg.content} />
+                    ) : (
+                      <AssistantMessageContent content={msg.content} />
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
 
             {(isStreaming || isThinking || streamingText) && (
               <div className="flex justify-start">
-                <div className="w-full max-w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm leading-relaxed text-gray-800">
-                  {streamingText ? (
-                    <AssistantMessageContent content={streamingText} showCharts={false} />
-                  ) : isThinking ? (
-                    <span className="flex items-center gap-2 text-gray-500">
-                      <span className="inline-flex gap-0.5">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:0.15s]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 [animation-delay:0.3s]" />
-                      </span>
-                      Analyzing data…
-                    </span>
-                  ) : (
-                    <span className="inline-flex gap-1 text-gray-400">
-                      <span className="animate-bounce">·</span>
-                      <span className="animate-bounce [animation-delay:0.1s]">·</span>
-                      <span className="animate-bounce [animation-delay:0.2s]">·</span>
-                    </span>
+                <div className="w-full max-w-full space-y-2">
+                  {thinkingPhase !== 'idle' && (
+                    <CopilotThinkingPanel
+                      phase={streamingText ? 'generating' : thinkingPhase}
+                      elapsedSeconds={thinkingElapsedSeconds}
+                      defaultExpanded={!streamingText}
+                    />
                   )}
+                  {streamingText ? (
+                    <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm leading-relaxed text-gray-800">
+                      <AssistantMessageContent content={streamingText} showCharts={false} />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             )}

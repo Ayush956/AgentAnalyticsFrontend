@@ -1,6 +1,6 @@
 # Agent Analytics Frontend
 
-Maruti Suzuki Analytics Dashboard — React + Vite + TypeScript.
+Ayush Analytics Dashboard — React + Vite + TypeScript.
 
 ## Local development
 

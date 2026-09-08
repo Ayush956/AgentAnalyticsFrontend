@@ -1,10 +1,15 @@
 import api from './api'
 import type { CopilotAnalyticsContext } from './copilot-context'
 
+export interface MessageThinking {
+  elapsedSeconds: number
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+  thinking?: MessageThinking
 }
 
 export function createSessionId(): string {

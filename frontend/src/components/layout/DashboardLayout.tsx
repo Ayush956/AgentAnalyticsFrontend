@@ -108,8 +108,7 @@ export default function DashboardLayout({
         <div className="flex h-14 items-center border-b border-white/10 px-4">
           {!sidebarCollapsed && (
             <div className="leading-tight">
-              <div className="text-[11px] font-semibold tracking-widest text-white/80">MARUTI</div>
-              <div className="text-sm font-bold tracking-wide">SUZUKI</div>
+            <div className="text-sm font-bold tracking-wide">Ayush Analytics</div>
             </div>
           )}
         </div>
@@ -139,8 +138,7 @@ export default function DashboardLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-6">
           <div className="text-lg font-bold tracking-wide text-maruti-blue">
-            <span className="text-[13px] font-semibold">MARUTI</span>{' '}
-            <span className="text-[13px] font-bold">SUZUKI</span>
+            Ayush Analytics
           </div>
 
           <div className="flex items-center gap-3">
